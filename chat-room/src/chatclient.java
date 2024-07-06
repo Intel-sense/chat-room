@@ -9,19 +9,24 @@ class chatclient {
     static final int SERVER_PORT = 12345;
     private BufferedReader in;
     private PrintWriter out;
-    private JFrame frame; // Remove initialization
+    private JFrame frame;
     private JTextArea messageArea = new JTextArea(20, 40);
     private JTextField textField = new JTextField(40);
     private String username;
+    private String password;
 
     public chatclient() {
-        // Prompt for username
+        frame = new JFrame("Login");
         username = JOptionPane.showInputDialog(frame, "Enter your username:", "Username", JOptionPane.PLAIN_MESSAGE);
+        password = JOptionPane.showInputDialog(frame, "Enter your password:", "Password", JOptionPane.PLAIN_MESSAGE);
         if (username == null || username.trim().isEmpty()) {
             username = "Anonymous";
         }
+        if (password == null || password.trim().isEmpty()) {
+            password = "password";
+        }
+        frame.setTitle(username + " Inside Chat Room");
 
-        frame = new JFrame(username + " Inside Chat Room"); // Set JFrame title to username
         messageArea.setEditable(false);
         frame.getContentPane().add(new JScrollPane(messageArea), BorderLayout.CENTER);
         frame.getContentPane().add(textField, BorderLayout.SOUTH);
@@ -29,7 +34,7 @@ class chatclient {
 
         textField.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                out.println(username + ": " + textField.getText());
+                out.println(textField.getText());
                 textField.setText("");
             }
         });
@@ -40,9 +45,17 @@ class chatclient {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
 
+        // Send username and password for authentication
+        out.println(username);
+        out.println(password);
+
         while (true) {
             String message = in.readLine();
             if (message == null) break;
+            if (message.startsWith("Enter username:") || message.startsWith("Enter password:")) {
+                // Handle login prompts separately (don't display them in the chat)
+                continue;
+            }
             messageArea.append(message + "\n");
         }
     }
@@ -54,11 +67,4 @@ class chatclient {
         client.run();
     }
 }
-
-
-
-
-
-
-
 
